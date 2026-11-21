@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>計分板</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; font-family: system-ui, -apple-system, "Noto Sans TC", sans-serif; background: #111; }
+  .board { display: flex; height: 100%; }
+  .side {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #fff; cursor: pointer; user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent; position: relative; transition: filter .1s;
+  }
+  .side:active { filter: brightness(1.2); }
+  .left  { background: #c62828; }
+  .right { background: #1565c0; }
+  .name {
+    font-size: clamp(20px, 5vw, 48px); font-weight: 600; background: transparent; border: none;
+    color: inherit; text-align: center; width: 80%; outline: none; opacity: .9;
+  }
+  .score { font-size: clamp(120px, 30vw, 360px); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .score.bump { animation: bump .2s ease-out; }
+  @keyframes bump { 50% { transform: scale(1.12); } }
+  .minus {
+    position: absolute; bottom: 24px; width: 56px; height: 56px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,.6); background: rgba(0,0,0,.2); color: #fff;
+    font-size: 32px; cursor: pointer; line-height: 1;
+  }
+  .reset {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 10;
+    padding: 10px 20px; border-radius: 999px; border: none; background: #fff; color: #111;
+    font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  }
+</style>
+</head>
+<body>
+<button class="reset" id="reset">重設</button>
+<div class="board">
+  <div class="side left" data-side="0">
+    <input class="name" value="紅隊" aria-label="左側隊名">
+    <div class="score">0</div>
+    <button class="minus" aria-label="左側減一分">−</button>
+  </div>
+  <div class="side right" data-side="1">
+    <input class="name" value="藍隊" aria-label="右側隊名">
+    <div class="score">0</div>
+    <button class="minus" aria-label="右側減一分">−</button>
+  </div>
+</div>
+<script>
+  const sides = document.querySelectorAll('.side');
+  let scores = [0, 0];
+  try { scores = JSON.parse(localStorage.getItem('scores')) || [0, 0]; } catch (e) {}
+
+  function render(i, animate) {
+    const el = sides[i].querySelector('.score');
+    el.textContent = scores[i];
+    if (animate) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+    try { localStorage.setItem('scores', JSON.stringify(scores)); } catch (e) {}
+  }
+
+  sides.forEach((side, i) => {
+    render(i);
+    side.addEventListener('click', e => {
+      if (e.target.closest('.name, .minus')) return;
+      scores[i]++; render(i, true);
+    });
+    side.querySelector('.minus').addEventListener('click', () => {
+      if (scores[i] > 0) { scores[i]--; render(i, true); }
+    });
+  });
+
+  document.getElementById('reset').addEventListener('click', () => {
+    if (confirm('確定要把比分歸零嗎？')) { scores = [0, 0]; render(0); render(1); }
+  });
+</script>
+</body>
+</html>
