@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>計分板</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,15 +31,21 @@
     border: 2px solid rgba(255,255,255,.6); background: rgba(0,0,0,.2); color: #fff;
     font-size: 32px; cursor: pointer; line-height: 1;
   }
-  .reset {
+  .toolbar {
     position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 10;
+    display: flex; gap: 8px;
+  }
+  .toolbar button {
     padding: 10px 20px; border-radius: 999px; border: none; background: #fff; color: #111;
     font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.3);
   }
 </style>
 </head>
 <body>
-<button class="reset" id="reset">重設</button>
+<div class="toolbar">
+  <button id="reset">重設</button>
+  <button id="fs">全螢幕</button>
+</div>
 <div class="board">
   <div class="side left" data-side="0">
     <input class="name" value="紅隊" aria-label="左側隊名">
@@ -75,6 +84,18 @@
   document.getElementById('reset').addEventListener('click', () => {
     if (confirm('確定要把比分歸零嗎？')) { scores = [0, 0]; render(0); render(1); }
   });
+
+  const fsBtn = document.getElementById('fs');
+  const root = document.documentElement;
+  const isFs = () => document.fullscreenElement || document.webkitFullscreenElement;
+  if (!(root.requestFullscreen || root.webkitRequestFullscreen)) fsBtn.style.display = 'none';
+  fsBtn.addEventListener('click', () => {
+    if (isFs()) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else (root.requestFullscreen || root.webkitRequestFullscreen).call(root);
+  });
+  const updateFs = () => { fsBtn.textContent = isFs() ? '離開全螢幕' : '全螢幕'; };
+  document.addEventListener('fullscreenchange', updateFs);
+  document.addEventListener('webkitfullscreenchange', updateFs);
 </script>
 </body>
 </html>
